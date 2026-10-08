@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">DevHub</string>
+    <string name="nav_feed">Feed</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_bookmarks">Bookmarks</string>
+    <string name="nav_profile">Profile</string>
+</resources>

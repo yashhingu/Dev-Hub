@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Spacing -->
+    <dimen name="spacing_tiny">4dp</dimen>
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_medium">16dp</dimen>
+    <dimen name="spacing_large">24dp</dimen>
+    <dimen name="spacing_extra_large">32dp</dimen>
+    
+    <!-- Avatars -->
+    <dimen name="avatar_size_small">24dp</dimen>
+    <dimen name="avatar_size_medium">40dp</dimen>
+    <dimen name="avatar_size_large">56dp</dimen>
+    
+    <!-- Icon Sizes -->
+    <dimen name="icon_size_small">16dp</dimen>
+    <dimen name="icon_size_medium">24dp</dimen>
+    
+    <!-- Corner Radii -->
+    <dimen name="radius_small">8dp</dimen>
+    <dimen name="radius_medium">12dp</dimen>
+    <dimen name="radius_large">16dp</dimen>
+</resources>
