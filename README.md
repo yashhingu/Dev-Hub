@@ -1,7 +1,5 @@
 # DevHub
 
-![DevHub logo](docs/devhub-logo.svg)
-
 DevHub is a modular Android app for discovering GitHub repositories and saving them for later. I built it to explore Compose UI, local persistence, typed navigation, and a cached-first data flow in a small app that is easy to inspect.
 
 ## What works
@@ -29,7 +27,7 @@ feature/bookmarks/         Saved repository list
 feature/repository-detail/ Repository details and README viewer
 ```
 
-The app is Android-only today. Ktor and some Kotlin libraries can support a future multiplatform version, but no KMP target is configured. See [architecture notes](docs/ARCHITECTURE.md) for the current data flow and trade-offs.
+The app is Android-only today. Ktor and some Kotlin libraries can support a future multiplatform version, but no KMP target is configured.
 
 ## Build
 
@@ -41,7 +39,7 @@ bash gradlew testDebugUnitTest
 bash gradlew :app:lintDebug
 ```
 
-On Windows, run `gradlew.bat` instead of `bash gradlew`. The debug APK is written to `app/build/outputs/apk/debug/`. CI runs the build, tests, and lint on pushes and pull requests.
+On Windows, run `gradlew.bat` instead of `bash gradlew`. The debug APK is written to `app/build/outputs/apk/debug/`.
 
 ## Tests
 
