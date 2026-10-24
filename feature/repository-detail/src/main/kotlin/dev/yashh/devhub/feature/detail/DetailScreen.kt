@@ -12,7 +12,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.platform.LocalContext
+import android.content.Intent
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,10 +30,19 @@ fun DetailRoute(
     viewModel: DetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     DetailScreen(
         uiState = uiState,
-        onIntent = viewModel::handleIntent,
+        onIntent = { intent ->
+            if (intent is DetailIntent.Share && uiState is DetailUiState.Success) {
+                val url = (uiState as DetailUiState.Success).repository.htmlUrl
+                context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, url)
+                }, "Share repository"))
+            } else viewModel.handleIntent(intent)
+        },
         onNavigateBack = onNavigateBack,
         modifier = modifier
     )
@@ -81,7 +91,7 @@ fun DetailScreen(
             is DetailUiState.Error -> {
                 ErrorState(
                     message = "Failed to load repository details",
-                    onRetry = { /* reload */ },
+                    onRetry = { onIntent(DetailIntent.Retry) },
                     modifier = Modifier.fillMaxSize().padding(paddingValues)
                 )
             }
@@ -130,10 +140,4 @@ fun DetailScreen(
             }
         }
     }
-}
-
-@PreviewLightDark
-@Composable
-private fun DetailScreenPreview() {
-    // Preview mock
 }

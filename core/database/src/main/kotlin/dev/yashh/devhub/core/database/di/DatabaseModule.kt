@@ -8,6 +8,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dev.yashh.devhub.core.database.DevHubDatabase
+import dev.yashh.devhub.core.database.LocalDataSource
+import dev.yashh.devhub.core.database.RoomLocalDataSource
 import dev.yashh.devhub.core.database.dao.BookmarkDao
 import dev.yashh.devhub.core.database.dao.RepositoryDao
 import javax.inject.Singleton

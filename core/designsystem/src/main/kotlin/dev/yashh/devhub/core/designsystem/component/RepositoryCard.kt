@@ -31,10 +31,31 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
 import dev.yashh.devhub.core.designsystem.icon.DevHubIcons
 import dev.yashh.devhub.core.designsystem.theme.DevHubTheme
+import dev.yashh.devhub.core.model.Repository
+
+@Composable
+fun RepositoryCard(
+    repository: Repository,
+    onClick: () -> Unit,
+    onBookmarkClick: () -> Unit,
+    modifier: Modifier = Modifier
+) = RepositoryCard(
+    ownerAvatarUrl = repository.owner.avatarUrl,
+    ownerName = repository.owner.login,
+    repoName = repository.name,
+    description = repository.description,
+    starsCount = repository.stargazersCount.toString(),
+    forksCount = repository.forksCount.toString(),
+    language = repository.language,
+    isBookmarked = repository.isBookmarked,
+    onCardClick = onClick,
+    onBookmarkClick = onBookmarkClick,
+    modifier = modifier
+)
 
 /**
  * A card displaying repository information.
@@ -75,7 +96,6 @@ fun RepositoryCard(
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(ownerAvatarUrl)
-                        .crossfade(true)
                         .build(),
                     contentDescription = "Repository owner avatar", // use stringResource in real app
                     contentScale = ContentScale.Crop,

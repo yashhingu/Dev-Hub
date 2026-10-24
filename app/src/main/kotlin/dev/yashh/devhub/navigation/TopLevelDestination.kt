@@ -4,11 +4,9 @@ import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.ui.graphics.vector.ImageVector
 import dev.yashh.devhub.R
@@ -42,11 +40,5 @@ enum class TopLevelDestination(
         unselectedIcon = Icons.Outlined.BookmarkBorder,
         titleTextId = R.string.nav_bookmarks,
         route = BookmarksRoutePath
-    ),
-    PROFILE(
-        selectedIcon = Icons.Filled.Person,
-        unselectedIcon = Icons.Outlined.Person,
-        titleTextId = R.string.nav_profile,
-        route = "profile"
     )
 }

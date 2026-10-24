@@ -6,6 +6,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dev.yashh.devhub.core.network.GitHubApiService
 import dev.yashh.devhub.core.network.KtorGitHubApiService
+import dev.yashh.devhub.core.network.KtorNetworkDataSource
+import dev.yashh.devhub.core.network.NetworkDataSource
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation

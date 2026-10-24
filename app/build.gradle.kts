@@ -1,12 +1,11 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
+    id("devhub.android.application")
     id("devhub.android.compose")
     id("devhub.android.hilt")
 }
 
 android {
-    namespace = "devhub.app"
+    namespace = "dev.yashh.devhub"
     compileSdk = 35
 
     defaultConfig {
@@ -40,6 +39,7 @@ dependencies {
     implementation(project(":core:database"))
     
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.navigation.compose)
     

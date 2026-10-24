@@ -45,7 +45,8 @@ class RoomLocalDataSource @Inject constructor(
     }
 
     override suspend fun saveTrendingRepositories(repositories: List<Repository>) {
-        val entities = repositories.map { it.toEntity() }
+        val bookmarkedIds = repositoryDao.getBookmarkedIds().toSet()
+        val entities = repositories.map { it.toEntity().copy(isBookmarked = it.id in bookmarkedIds) }
         repositoryDao.upsertAll(entities)
     }
 

@@ -58,11 +58,5 @@ fun DevHubNavHost(
             }
         )
 
-        // Feature: Profile placeholder
-        composable(route = "profile") {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = "Profile Feature")
-            }
-        }
     }
 }

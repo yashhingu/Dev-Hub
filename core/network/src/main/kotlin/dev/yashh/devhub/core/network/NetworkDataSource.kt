@@ -11,6 +11,7 @@ import java.io.IOException
 import java.net.UnknownHostException
 import javax.inject.Inject
 import javax.inject.Singleton
+import android.util.Base64
 
 interface NetworkDataSource {
     suspend fun fetchTrendingRepositories(language: String?): List<Repository>
@@ -41,6 +42,8 @@ class KtorNetworkDataSource @Inject constructor(
 
     override suspend fun getReadme(owner: String, repo: String): String {
         val readmeDto = apiService.getReadme(owner = owner, repo = repo)
-        return readmeDto.content
+        return if (readmeDto.encoding == "base64") {
+            String(Base64.decode(readmeDto.content, Base64.DEFAULT), Charsets.UTF_8)
+        } else readmeDto.content
     }
 }

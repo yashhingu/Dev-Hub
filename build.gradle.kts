@@ -9,5 +9,3 @@ plugins {
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.kover) apply false
 }
-
-true // Avoid empty file warning

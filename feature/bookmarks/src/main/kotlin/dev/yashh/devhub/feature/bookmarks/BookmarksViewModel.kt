@@ -6,20 +6,19 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.yashh.devhub.core.common.dispatcher.DispatcherProvider
 import dev.yashh.devhub.core.model.Repository
 import dev.yashh.devhub.feature.bookmarks.usecase.GetBookmarkedRepositoriesUseCase
-import dev.yashh.devhub.feature.bookmarks.usecase.ManageTagsUseCase
 import dev.yashh.devhub.feature.bookmarks.usecase.RemoveBookmarkUseCase
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 
 sealed interface BookmarksUiState {
     data object Loading : BookmarksUiState
     data class Success(
-        val repositories: ImmutableList<Repository>,
-        val tags: ImmutableList<String>,
-        val selectedTag: String? = null
+        val repositories: ImmutableList<Repository>
     ) : BookmarksUiState
     data object Error : BookmarksUiState
 }
@@ -27,19 +26,18 @@ sealed interface BookmarksUiState {
 sealed interface BookmarksIntent {
     data object Refresh : BookmarksIntent
     data class RemoveBookmark(val id: Long) : BookmarksIntent
-    data class SelectTag(val tag: String?) : BookmarksIntent
 }
 
 @HiltViewModel
 class BookmarksViewModel @Inject constructor(
     private val getBookmarkedRepositoriesUseCase: GetBookmarkedRepositoriesUseCase,
     private val removeBookmarkUseCase: RemoveBookmarkUseCase,
-    private val manageTagsUseCase: ManageTagsUseCase,
     private val dispatchers: DispatcherProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<BookmarksUiState>(BookmarksUiState.Loading)
     val uiState: StateFlow<BookmarksUiState> = _uiState.asStateFlow()
+    private var observeJob: Job? = null
 
     init {
         loadBookmarks()
@@ -49,25 +47,22 @@ class BookmarksViewModel @Inject constructor(
         when (intent) {
             is BookmarksIntent.Refresh -> loadBookmarks()
             is BookmarksIntent.RemoveBookmark -> removeBookmark(intent.id)
-            is BookmarksIntent.SelectTag -> {
-                // Handle tag selection filtering
-            }
         }
     }
 
     private fun loadBookmarks() {
-        viewModelScope.launch(dispatchers.io) {
+        observeJob?.cancel()
+        observeJob = viewModelScope.launch(dispatchers.io) {
             try {
                 getBookmarkedRepositoriesUseCase().collectLatest { repos ->
-                    val tags = manageTagsUseCase.getAllTags()
                     _uiState.update { 
                         BookmarksUiState.Success(
-                            repositories = repos,
-                            tags = tags
+                            repositories = repos
                         ) 
                     }
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 _uiState.update { BookmarksUiState.Error }
             }
         }

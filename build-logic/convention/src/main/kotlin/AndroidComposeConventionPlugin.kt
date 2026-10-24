@@ -1,4 +1,5 @@
-import com.android.build.api.dsl.CommonExtension
+import com.android.build.api.dsl.ApplicationExtension
+import com.android.build.gradle.LibraryExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalogsExtension
@@ -13,11 +14,11 @@ class AndroidComposeConventionPlugin : Plugin<Project> {
         with(target) {
             pluginManager.apply("org.jetbrains.kotlin.plugin.compose")
 
-            val extension = extensions.getByType<CommonExtension<*, *, *, *, *, *>>()
-            extension.apply {
-                buildFeatures {
-                    compose = true
-                }
+            plugins.withId("com.android.application") {
+                extensions.getByType<ApplicationExtension>().buildFeatures.compose = true
+            }
+            plugins.withId("com.android.library") {
+                extensions.getByType<LibraryExtension>().buildFeatures.compose = true
             }
 
             val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")

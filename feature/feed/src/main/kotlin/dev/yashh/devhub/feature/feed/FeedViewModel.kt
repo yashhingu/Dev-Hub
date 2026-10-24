@@ -11,8 +11,10 @@ import dev.yashh.devhub.feature.feed.usecase.GetTrendingRepositoriesUseCase
 import dev.yashh.devhub.feature.feed.usecase.ToggleBookmarkUseCase
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
 import javax.inject.Inject
 
 sealed interface FeedUiState {
@@ -31,7 +33,6 @@ sealed interface FeedIntent {
     data object Refresh : FeedIntent
     data class ToggleBookmark(val repositoryId: Long) : FeedIntent
     data class FilterLanguage(val language: String?) : FeedIntent
-    data object LoadMore : FeedIntent
 }
 
 @HiltViewModel
@@ -45,6 +46,7 @@ class FeedViewModel @Inject constructor(
     val uiState: StateFlow<FeedUiState> = _uiState.asStateFlow()
 
     private var currentLanguage: String? = null
+    private var loadJob: Job? = null
 
     init {
         loadRepositories()
@@ -58,13 +60,12 @@ class FeedViewModel @Inject constructor(
                 currentLanguage = intent.language
                 loadRepositories()
             }
-            is FeedIntent.LoadMore -> {
-                // Implement pagination logic here if needed
-            }
         }
     }
 
     private fun loadRepositories(isRefresh: Boolean = false) {
+        loadJob?.cancel()
+        val language = currentLanguage
         if (!isRefresh) {
             _uiState.update { FeedUiState.Loading }
         } else {
@@ -73,14 +74,14 @@ class FeedViewModel @Inject constructor(
             }
         }
 
-        viewModelScope.launch(dispatchers.io) {
-            getTrendingRepositoriesUseCase(currentLanguage).collectLatest { result ->
+        loadJob = viewModelScope.launch(dispatchers.io) {
+            getTrendingRepositoriesUseCase(language).collectLatest { result ->
                 when (result) {
                     is DataResult.Success -> {
                         _uiState.update {
                             FeedUiState.Success(
                                 repositories = result.data,
-                                selectedLanguage = currentLanguage,
+                                selectedLanguage = language,
                                 isRefreshing = false
                             )
                         }
@@ -101,8 +102,14 @@ class FeedViewModel @Inject constructor(
 
     private fun toggleBookmark(repositoryId: Long) {
         viewModelScope.launch(dispatchers.io) {
-            // Optimistic update could go here
             toggleBookmarkUseCase(repositoryId)
+            _uiState.update { state ->
+                if (state is FeedUiState.Success) {
+                    state.copy(repositories = state.repositories.map { repo ->
+                        if (repo.id == repositoryId) repo.copy(isBookmarked = !repo.isBookmarked) else repo
+                    }.toImmutableList())
+                } else state
+            }
         }
     }
 }

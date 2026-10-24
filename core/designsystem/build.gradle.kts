@@ -8,6 +8,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:model"))
+    implementation(libs.androidx.core.ktx)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.ktor)
     implementation(libs.kotlinx.collections.immutable)

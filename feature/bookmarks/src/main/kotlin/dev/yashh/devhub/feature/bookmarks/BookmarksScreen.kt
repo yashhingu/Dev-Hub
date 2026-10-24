@@ -3,7 +3,6 @@ package dev.yashh.devhub.feature.bookmarks
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -16,6 +15,7 @@ import dev.yashh.devhub.core.designsystem.component.EmptyState
 import dev.yashh.devhub.core.designsystem.component.ErrorState
 import dev.yashh.devhub.core.designsystem.component.LoadingIndicator
 import dev.yashh.devhub.core.designsystem.component.RepositoryCard
+import dev.yashh.devhub.core.designsystem.icon.DevHubIcons
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,23 +44,6 @@ fun BookmarksScreen(
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         
-        // Tags Filter
-        if (uiState is BookmarksUiState.Success && uiState.tags.isNotEmpty()) {
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(uiState.tags) { tag ->
-                    FilterChip(
-                        selected = tag == uiState.selectedTag,
-                        onClick = { onIntent(BookmarksIntent.SelectTag(tag)) },
-                        label = { Text(tag) }
-                    )
-                }
-            }
-        }
-
         Crossfade(targetState = uiState, label = "BookmarksState") { state ->
             when (state) {
                 is BookmarksUiState.Loading -> LoadingIndicator(modifier = Modifier.fillMaxSize())
@@ -72,8 +55,9 @@ fun BookmarksScreen(
                 is BookmarksUiState.Success -> {
                     if (state.repositories.isEmpty()) {
                         EmptyState(
+                            icon = DevHubIcons.BookmarkOutline,
                             title = "No Bookmarks",
-                            message = "You haven't bookmarked any repositories yet.",
+                            subtitle = "You haven't bookmarked any repositories yet.",
                             modifier = Modifier.fillMaxSize()
                         )
                     } else {

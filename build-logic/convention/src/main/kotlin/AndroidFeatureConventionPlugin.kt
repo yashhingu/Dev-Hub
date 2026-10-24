@@ -11,6 +11,7 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 apply("devhub.android.library")
                 apply("devhub.android.hilt")
                 apply("devhub.android.compose")
+                apply("org.jetbrains.kotlin.plugin.serialization")
             }
 
             val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
@@ -25,6 +26,10 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 add("implementation", libs.findLibrary("androidx.hilt.navigation.compose").get())
                 add("implementation", libs.findLibrary("androidx.navigation.compose").get())
                 add("implementation", libs.findBundle("lifecycle").get())
+                add("implementation", libs.findLibrary("kotlinx-collections-immutable").get())
+                add("implementation", libs.findLibrary("kotlinx-serialization-json").get())
+                add("implementation", libs.findLibrary("datastore-preferences").get())
+                add("testImplementation", libs.findBundle("testing").get())
             }
         }
     }

@@ -21,7 +21,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 object DevHubIcons {
     val Star: ImageVector = Icons.Filled.Star
     val StarOutline: ImageVector = Icons.Outlined.StarBorder
-    // NOTE: Fork doesn't have an exact equivalent in default Material Icons, using Share or Code as fallback often, or a custom vector. Let's use Share for now.
+    // Material Icons has no fork glyph; Share is the nearest available symbol here.
     val Fork: ImageVector = Icons.Filled.Share
     val Code: ImageVector = Icons.Filled.Code
     val Search: ImageVector = Icons.Filled.Search
@@ -32,6 +32,5 @@ object DevHubIcons {
     val MoreVert: ImageVector = Icons.Filled.MoreVert
     val Share: ImageVector = Icons.Filled.Share
     val OpenInBrowser: ImageVector = Icons.Filled.OpenInBrowser
-    val Tag: ImageVector = Icons.Filled.Warning // Substitute for tag if not present in standard set, wait, Tag is available in Extended but let's use a standard one or create placeholder. Using Warning as placeholder.
     val Warning: ImageVector = Icons.Filled.Warning
 }

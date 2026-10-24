@@ -23,6 +23,9 @@ interface RepositoryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(repositories: List<RepositoryEntity>)
 
+    @Query("SELECT id FROM repositories WHERE isBookmarked = 1")
+    suspend fun getBookmarkedIds(): List<Long>
+
     @Query("SELECT * FROM repositories WHERE (:language IS NULL OR LOWER(language) = LOWER(:language)) ORDER BY stargazersCount DESC LIMIT 50")
     suspend fun getTrendingRepositories(language: String?): List<RepositoryEntity>
 

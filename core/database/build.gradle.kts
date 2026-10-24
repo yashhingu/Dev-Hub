@@ -17,6 +17,8 @@ dependencies {
     ksp(libs.room.compiler)
     
     implementation(libs.datastore.preferences)
+    implementation(libs.kotlinx.collections.immutable)
+    implementation(libs.kotlinx.serialization.json)
     
     testImplementation(libs.bundles.testing)
 }

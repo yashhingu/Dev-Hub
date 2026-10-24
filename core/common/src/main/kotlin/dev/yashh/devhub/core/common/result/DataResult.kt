@@ -9,7 +9,6 @@ sealed interface DataResult<out T, out E: DataError> {
     data class Failure<E: DataError>(val error: E) : DataResult<Nothing, E>
 }
 
-// NOTE: These extensions are incredibly useful for chaining operations cleanly
 
 inline fun <T, E: DataError, R> DataResult<T, E>.map(transform: (T) -> R): DataResult<R, E> =
     when (this) {

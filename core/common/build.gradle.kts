@@ -8,6 +8,8 @@ android {
 }
 
 dependencies {
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.ui)
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.android)
     implementation(libs.timber)

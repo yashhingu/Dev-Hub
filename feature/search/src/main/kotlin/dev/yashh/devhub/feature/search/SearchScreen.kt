@@ -18,6 +18,7 @@ import dev.yashh.devhub.core.designsystem.component.EmptyState
 import dev.yashh.devhub.core.designsystem.component.ErrorState
 import dev.yashh.devhub.core.designsystem.component.LoadingIndicator
 import dev.yashh.devhub.core.designsystem.component.RepositoryCard
+import dev.yashh.devhub.core.designsystem.icon.DevHubIcons
 
 @Composable
 fun SearchRoute(
@@ -108,8 +109,9 @@ fun SearchScreen(
                 }
                 is SearchUiState.Empty -> {
                     EmptyState(
+                        icon = DevHubIcons.Search,
                         title = "No results found",
-                        message = "We couldn't find anything matching '$query'.",
+                        subtitle = "We couldn't find anything matching '$query'.",
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -133,7 +135,7 @@ fun SearchScreen(
                             RepositoryCard(
                                 repository = repo,
                                 onClick = { onNavigateToDetail(repo.owner.login, repo.name) },
-                                onBookmarkClick = {}
+                                onBookmarkClick = { onIntent(SearchIntent.ToggleBookmark(repo)) }
                             )
                         }
                     }

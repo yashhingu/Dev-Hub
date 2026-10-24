@@ -1,87 +1,28 @@
-# 🏗️ DevHub Architecture
+# Architecture notes
 
-This document details the architectural decisions, design patterns, and engineering principles used across DevHub.
+DevHub is an Android application split into `app`, `core`, and `feature` Gradle modules. Shared Gradle settings live in `build-logic/convention`. The repository is modular, but it does not configure Kotlin Multiplatform targets.
 
----
+## Data flow
 
-## 1. Clean Architecture Layers
+The Discover screen sends intents to `FeedViewModel`, which exposes `StateFlow<FeedUiState>`. `GetTrendingRepositoriesUseCase` delegates to `FeedRepositoryImpl`. The repository reads Room first, emits cached repositories when present, fetches from GitHub, writes the response to Room, and emits the refreshed snapshot. A failed request with existing cache leaves the cached content visible. A failed request without cache produces an error state.
 
-DevHub strictly follows Clean Architecture with unidirectional data flow (UDF):
+The GitHub search endpoint is used as a trending approximation: repositories created within a recent time window, sorted by star count. It is not equivalent to GitHub's Trending page.
 
-### Presentation Layer (`:feature:*`, `:app`)
-- **UI Toolkit**: 100% Jetpack Compose with Material 3 styling.
-- **State Management**: MVI (Model-View-Intent) pattern. ViewModels expose a single immutable `StateFlow<UiState>` collected with `collectAsStateWithLifecycle()`.
-- **Navigation**: Type-safe navigation routes via `kotlinx.serialization` `@Serializable` objects.
-- **Design Tokens**: Standardized components from `:core:designsystem`.
+`RoomLocalDataSource` stores repository snapshots and bookmark records. A refresh keeps bookmark flags for repositories already in the database. Search history is a separate DataStore preference containing up to ten recent queries.
 
-### Domain Layer (UseCases & Domain Models)
-- **Pure Kotlin**: 100% free of Android framework dependencies (`Context`, `Bundle`, etc.).
-- **Immutability**: Models in `:core:model` use `@Immutable` annotations and `kotlinx.collections.immutable.ImmutableList` to ensure Compose skipping optimizations.
-- **Result Wrapping**: Operations return typed `DataResult<T, DataError>` — exceptions are trapped and modeled as explicit errors.
+## Module boundaries
 
-### Data Layer (`:core:network`, `:core:database`)
-- **Network Source**: Ktor 3.0 Client with OkHttp engine and `kotlinx.serialization` for JSON serialization.
-- **Local Persistence**: AndroidX Room database with SQLite, exposing `Flow` for reactive query observing.
-- **Repository Implementation**: Single source of truth pattern where the repository mediates between network and local cache.
+- `core/network` contains Ktor requests, response models, and mapping to app models.
+- `core/database` contains Room entities, DAOs, and local data operations.
+- `core/model` contains shared repository and owner models. It uses Compose stability annotations and persistent collections, so it is not a platform-independent domain module.
+- `feature/*` modules contain screens, ViewModels, and use cases. They currently depend directly on the relevant core data modules.
+- `app` owns the Hilt root, navigation graph, and bottom navigation.
 
----
+The feature modules use a small intent/state pattern. It keeps UI events explicit, but does not implement a general MVI framework. Search results are fetched from the network; saved repositories remain available through the Bookmarks screen when offline.
 
-## 2. Module Responsibility Matrix
+## Known limits
 
-| Module | Responsibility | Dependencies |
-|---|---|---|
-| `:app` | Application entry point, Hilt root, edge-to-edge configuration, global navigation host | All features, `:core:designsystem`, `:core:common` |
-| `:feature:feed` | Trending repositories feed, language filtering, pull-to-refresh | `:core:model`, `:core:designsystem`, `:core:common`, `:core:network`, `:core:database` |
-| `:feature:repository-detail` | Repository details, stats breakdown, markdown rendering | `:core:model`, `:core:designsystem`, `:core:common`, `:core:network` |
-| `:feature:search` | Debounced search, recent query suggestions | `:core:model`, `:core:designsystem`, `:core:common`, `:core:network` |
-| `:feature:bookmarks` | Offline bookmark persistence, tag assignment, local search | `:core:model`, `:core:designsystem`, `:core:common`, `:core:database` |
-| `:core:common` | Coroutine dispatchers (`DispatcherProvider`), `DataResult`, `DataError`, `UiText` | Pure Kotlin / Android core |
-| `:core:model` | Shared domain entities (`Repository`, `Owner`, `BookmarkTag`) | Pure Kotlin, `@Immutable` Compose annotations |
-| `:core:network` | Ktor API service, DTOs, network mappers, `NetworkDataSource` | `:core:model`, `:core:common`, Ktor |
-| `:core:database` | Room database, DAOs, entities, `LocalDataSource` | `:core:model`, `:core:common`, Room |
-| `:core:designsystem` | Material 3 themes, typography, custom components, icons | Jetpack Compose, Material 3, Coil |
-
----
-
-## 3. Why MVI over MVVM?
-
-1. **Deterministic State Modeling**: The UI is a pure projection of `UiState`.
-2. **Explicit User Intents**: Every user interaction is represented as a strongly-typed `Intent` (e.g., `FeedIntent.Refresh`, `FeedIntent.FilterLanguage(lang)`).
-3. **Immutability Guarantees**: UI state classes are marked `@Immutable` to prevent accidental in-place mutation and maximize Compose recomposition pruning.
-
----
-
-## 4. Offline-First Caching Strategy
-
-```text
-[Compose UI]
-     │
-     │ 1. Triggers FeedIntent.Refresh
-     ▼
-[FeedViewModel]
-     │
-     │ 2. Executes GetTrendingRepositoriesUseCase
-     ▼
-[FeedRepositoryImpl]
-     ├──► 3. Emits cached data from Room immediately (instant UI rendering)
-     │
-     └──► 4. Fetches latest data from GitHub API via Ktor
-               │
-               ▼
-          5. Upserts new records into Room database
-               │
-               ▼
-          6. Emits fresh cache state to UI
-```
-
-If the device is offline or the network call fails:
-- If cache exists, the user sees cached data seamlessly.
-- If no cache exists, the pipeline yields `DataResult.Failure(DataError.NetworkError.NoInternet)` and the UI displays an `ErrorState` with a retry option.
-
----
-
-## 5. Dependency Injection
-
-DevHub relies on **Dagger Hilt** for dependency injection:
-- `DispatcherProvider` is injected everywhere to avoid hardcoding `Dispatchers.IO` or `Dispatchers.Main`, enabling frictionless unit testing with `StandardTestDispatcher`.
-- Singletons are scoped via `@Singleton` in their respective core modules (`NetworkModule`, `DatabaseModule`).
+- README rendering supports headings, fenced code blocks, bullets, blockquotes, rules, bold, italic, and inline code. Links, images, tables, and nested structures are not fully supported.
+- The feed cache is a snapshot cache, rather than a continuously observed Room stream.
+- GitHub API calls are unauthenticated and subject to rate limits.
+- Automated coverage is limited to core result and mapping behavior plus feed cache behavior. There are no instrumented UI tests yet.

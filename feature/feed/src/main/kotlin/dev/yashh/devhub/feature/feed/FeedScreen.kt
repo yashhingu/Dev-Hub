@@ -10,7 +10,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -19,6 +18,7 @@ import dev.yashh.devhub.core.designsystem.component.EmptyState
 import dev.yashh.devhub.core.designsystem.component.ErrorState
 import dev.yashh.devhub.core.designsystem.component.RepositoryCard
 import dev.yashh.devhub.core.designsystem.component.ShimmerRepositoryCard
+import dev.yashh.devhub.core.designsystem.icon.DevHubIcons
 import dev.yashh.devhub.core.model.Repository
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,7 +48,6 @@ fun FeedScreen(
 ) {
     val languages = listOf("All", "Kotlin", "Java", "Python", "JavaScript", "TypeScript", "Rust", "Go", "Swift")
     
-    // NOTE: PullToRefreshBox handles the pull-to-refresh logic elegantly in M3.
     Column(modifier = modifier.fillMaxSize()) {
         // Filter Chips row
         LazyRow(
@@ -101,8 +100,9 @@ fun FeedScreen(
                     ) {
                         if (state.repositories.isEmpty()) {
                             EmptyState(
+                                icon = DevHubIcons.Search,
                                 title = "No repositories found",
-                                message = "Try selecting a different language.",
+                                subtitle = "Try selecting a different language.",
                                 modifier = Modifier.fillMaxSize()
                             )
                         } else {
@@ -123,7 +123,6 @@ fun FeedScreen(
                                     )
                                 }
                                 
-                                // Could add load more indicator here for pagination
                             }
                         }
                     }
@@ -131,10 +130,4 @@ fun FeedScreen(
             }
         }
     }
-}
-
-@PreviewLightDark
-@Composable
-private fun FeedScreenPreview() {
-    // Preview mock data
 }

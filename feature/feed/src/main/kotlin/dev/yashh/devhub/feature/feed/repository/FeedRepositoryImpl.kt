@@ -9,6 +9,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 
 class FeedRepositoryImpl @Inject constructor(
@@ -37,6 +38,7 @@ class FeedRepositoryImpl @Inject constructor(
             emit(DataResult.Success(freshData.toImmutableList()))
             
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             // NOTE: If network fails and we already have cache, we've already emitted it.
             // But we should notify the UI about the failure so it can show a non-intrusive snackbar if needed.
             // If cache was empty, we emit a true Error state.

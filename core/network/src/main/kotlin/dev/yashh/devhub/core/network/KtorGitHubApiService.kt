@@ -8,8 +8,8 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import javax.inject.Inject
+import java.time.LocalDate
 
-// NOTE: Ktor abstracts away much of the boilerplate for HTTP calls.
 class KtorGitHubApiService @Inject constructor(
     private val client: HttpClient
 ) : GitHubApiService {
@@ -44,8 +44,13 @@ class KtorGitHubApiService @Inject constructor(
     ): List<NetworkRepository> {
         // Trending API isn't officially supported by GitHub in a clean way, so usually we construct a search query
         // E.g., searching for repositories created in the last week
-        val langQuery = if (language.isNullOrBlank()) "" else "language:$language"
-        val query = "stars:>1 $langQuery".trim()
+        val days = when (since) {
+            "weekly" -> 7L
+            "monthly" -> 30L
+            else -> 1L
+        }
+        val langQuery = if (language.isNullOrBlank()) "" else " language:$language"
+        val query = "created:>=${LocalDate.now().minusDays(days)} stars:>1$langQuery"
         
         val response = client.get("search/repositories") {
             parameter("q", query)

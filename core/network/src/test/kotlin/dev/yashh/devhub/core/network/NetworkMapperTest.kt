@@ -1,68 +1,35 @@
 package dev.yashh.devhub.core.network
 
-import dev.yashh.devhub.core.model.Repository
+import dev.yashh.devhub.core.network.mapper.toDomain
+import dev.yashh.devhub.core.network.model.NetworkOwner
+import dev.yashh.devhub.core.network.model.NetworkRepository
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class NetworkMapperTest {
-
-    @Test
-    fun `map RepoDto to Domain Model works correctly`() {
-        val dto = RepoDto(
-            id = 1,
-            name = "TestRepo",
-            owner = OwnerDto(login = "user1", avatarUrl = "url"),
-            description = "Desc",
+    @Test fun repositoryFieldsSurviveMapping() {
+        val dto = NetworkRepository(
+            id = 42,
+            name = "devhub",
+            fullName = "sample/devhub",
+            description = "Example",
+            owner = NetworkOwner(7, "sample", "https://example.com/avatar", "https://example.com/sample"),
+            stargazersCount = 123,
+            forksCount = 8,
             language = "Kotlin",
-            stargazersCount = 100,
-            forksCount = 10,
-            htmlUrl = "https://github.com/test"
+            openIssuesCount = 2,
+            topics = listOf("android"),
+            htmlUrl = "https://github.com/sample/devhub",
+            createdAt = "2026-01-01T00:00:00Z",
+            updatedAt = "2026-01-02T00:00:00Z"
         )
-        
-        val domain = NetworkMapper.toDomain(dto)
-        
-        assertEquals(1, domain.id)
-        assertEquals("TestRepo", domain.name)
-        assertEquals("user1", domain.owner)
-        assertEquals("Desc", domain.description)
-        assertEquals("Kotlin", domain.language)
-        assertEquals(100, domain.stars)
-        assertEquals(10, domain.forks)
-    }
 
-    @Test
-    fun `map handles null fields gracefully`() {
-        val dto = RepoDto(
-            id = 1,
-            name = "TestRepo",
-            owner = OwnerDto(login = "user1", avatarUrl = "url"),
-            description = null, // Null description
-            language = null,    // Null language
-            stargazersCount = 100,
-            forksCount = 10,
-            htmlUrl = "https://github.com/test"
-        )
-        
-        val domain = NetworkMapper.toDomain(dto)
-        
-        assertEquals("", domain.description)
-        assertEquals("Unknown", domain.language)
-    }
-}
-
-// Simple implementation for compilation
-object NetworkMapper {
-    fun toDomain(dto: RepoDto): Repository {
-        return Repository(
-            id = dto.id,
-            name = dto.name,
-            owner = dto.owner.login,
-            description = dto.description ?: "",
-            language = dto.language ?: "Unknown",
-            stars = dto.stargazersCount,
-            forks = dto.forksCount,
-            url = dto.htmlUrl,
-            isBookmarked = false
-        )
+        val result = dto.toDomain()
+        assertEquals("sample/devhub", result.fullName)
+        assertEquals("sample", result.owner.login)
+        assertEquals(123, result.stargazersCount)
+        assertEquals(listOf("android"), result.topics.toList())
+        assertFalse(result.isBookmarked)
     }
 }

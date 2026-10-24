@@ -6,10 +6,12 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.yashh.devhub.core.common.dispatcher.DispatcherProvider
 import dev.yashh.devhub.core.model.Repository
+import dev.yashh.devhub.core.database.LocalDataSource
 import dev.yashh.devhub.feature.detail.usecase.GetReadmeUseCase
 import dev.yashh.devhub.feature.detail.usecase.GetRepositoryDetailUseCase
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 
 sealed interface DetailUiState {
@@ -25,7 +27,7 @@ sealed interface DetailIntent {
     data class LoadRepo(val owner: String, val repoName: String) : DetailIntent
     data object ToggleBookmark : DetailIntent
     data object Share : DetailIntent
-    data object OpenInBrowser : DetailIntent
+    data object Retry : DetailIntent
 }
 
 @HiltViewModel
@@ -33,6 +35,7 @@ class DetailViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val getRepositoryDetailUseCase: GetRepositoryDetailUseCase,
     private val getReadmeUseCase: GetReadmeUseCase,
+    private val localDataSource: LocalDataSource,
     private val dispatchers: DispatcherProvider
 ) : ViewModel() {
 
@@ -52,14 +55,22 @@ class DetailViewModel @Inject constructor(
         when (intent) {
             is DetailIntent.LoadRepo -> loadRepositoryData(intent.owner, intent.repoName)
             is DetailIntent.ToggleBookmark -> {
-                // Implement toggle bookmark logic
+                val state = _uiState.value as? DetailUiState.Success ?: return
+                viewModelScope.launch(dispatchers.io) {
+                    if (state.repository.isBookmarked) {
+                        localDataSource.removeBookmark(state.repository.id)
+                    } else {
+                        localDataSource.addBookmark(state.repository)
+                    }
+                    _uiState.update { current ->
+                        if (current is DetailUiState.Success) current.copy(
+                            repository = current.repository.copy(isBookmarked = !state.repository.isBookmarked)
+                        ) else current
+                    }
+                }
             }
-            is DetailIntent.Share -> {
-                // Implement share logic
-            }
-            is DetailIntent.OpenInBrowser -> {
-                // Implement open in browser logic
-            }
+            is DetailIntent.Share -> Unit
+            is DetailIntent.Retry -> if (owner != null && repoName != null) loadRepositoryData(owner, repoName)
         }
     }
 
@@ -68,7 +79,9 @@ class DetailViewModel @Inject constructor(
             _uiState.update { DetailUiState.Loading }
             
             try {
-                val repository = getRepositoryDetailUseCase(owner, repoName)
+                val remoteRepository = getRepositoryDetailUseCase(owner, repoName)
+                val cached = localDataSource.getRepository(remoteRepository.id)
+                val repository = remoteRepository.copy(isBookmarked = cached?.isBookmarked == true)
                 val readme = getReadmeUseCase(owner, repoName)
                 
                 _uiState.update {
@@ -78,6 +91,7 @@ class DetailViewModel @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 _uiState.update { DetailUiState.Error }
             }
         }
